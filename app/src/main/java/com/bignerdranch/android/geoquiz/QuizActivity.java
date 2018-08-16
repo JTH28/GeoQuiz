@@ -25,12 +25,12 @@ public class QuizActivity extends AppCompatActivity {
 
 
     private Question[] mQuestionBank = new Question[] {
-        new Question(R.string.question_australia, true, false),
-        new Question(R.string.question_oceans,true,false),
-        new Question(R.string.question_mideast, false,false),
-        new Question(R.string.question_africa, false,false),
-        new Question(R.string.question_americas,true,false),
-        new Question(R.string.question_asia,true,false)
+        new Question(R.string.question_australia, true),
+        new Question(R.string.question_oceans,true),
+        new Question(R.string.question_mideast, false),
+        new Question(R.string.question_africa, false),
+        new Question(R.string.question_americas,true),
+        new Question(R.string.question_asia,true)
     };
 
     private int mCurrentIndex = 0;
@@ -56,7 +56,6 @@ public class QuizActivity extends AppCompatActivity {
 
             }
         });
-        updateQuestion();
 
         mTrueButton  = findViewById(R.id.true_button);
         mTrueButton.setOnClickListener(new View.OnClickListener(){
@@ -106,6 +105,7 @@ public class QuizActivity extends AppCompatActivity {
                 updateQuestion();
             }
         });
+        updateQuestion();
     }
 
     @Override
@@ -131,10 +131,10 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
 
-        ArrayList<Boolean> questionsAnswered = new ArrayList<>();
-        for(Question q : mQuestionBank) {
-            questionsAnswered.add(q.isAnswered());
-        }
+        //ArrayList<Boolean> questionsAnswered = new ArrayList<>();
+        //for(Question q : mQuestionBank) {
+        //    questionsAnswered.add(q.isAnswered());
+        //}
 
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
     }
@@ -152,8 +152,21 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void updateQuestion() {
+
         int question = mQuestionBank[mCurrentIndex].getTextResId();
         mQuestionTextView.setText(question);
+
+        Log.d(TAG, "setting x with mQuestionBank[mCurrentIndex].isAnswered()");
+        boolean x = mQuestionBank[mCurrentIndex].isAnswered();
+        Log.d(TAG, x + "");
+        if(x){
+            Log.d(TAG, "updateQuestion() called");
+            disableAnswerButtons();
+        } else {
+            Log.d(TAG,"enableAnswerButtonsCalled() called");
+            enableAnswerButtons();
+            Log.d(TAG,"enableAnswerButtonsCalled() returned");
+        }
     }
 
     private void checkAnswer(boolean userPressedTrue) {
@@ -162,19 +175,47 @@ public class QuizActivity extends AppCompatActivity {
 
         if(userPressedTrue == answerIsTrue){
             messageResId = R.string.correct_toast;
+            isAnswerCorrect(true);
+
         } else {
             messageResId = R.string.incorrect_toast;
+            isAnswerCorrect(false);
         }
-
+        disableAnswerButtons();
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
-    private boolean checkAnswered() {
+    private void isAnswerCorrect(boolean isCorrectAnswer) {
+        mQuestionBank[mCurrentIndex].setAnswered(true);
+        mQuestionBank[mCurrentIndex].setCorrect(isCorrectAnswer);
+    }
+
+    private void disableAnswerButtons() {
+        mTrueButton.setEnabled(false);
+        mFalseButton.setEnabled(false);
+    }
+
+    private void enableAnswerButtons() {
+        mTrueButton.setEnabled(true);
+        mFalseButton.setEnabled(true);
+    }
+
+    private boolean checkAllAnswered() {
         for(Question q : mQuestionBank){
             if(!q.isAnswered()){
                 return false;
             }
         }
         return true;
+    }
+
+    private float gradeQuiz() {
+        int numRight = 0;
+        for(Question q : mQuestionBank) {
+            if(q.isCorrect()) {
+                numRight++;
+            }
+        }
+        return (float) numRight/mQuestionBank.length;
     }
 }
