@@ -40,7 +40,6 @@ public class QuizActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_quiz);
 
         if(savedInstanceState !=  null){
@@ -156,16 +155,11 @@ public class QuizActivity extends AppCompatActivity {
         int question = mQuestionBank[mCurrentIndex].getTextResId();
         mQuestionTextView.setText(question);
 
-        Log.d(TAG, "setting x with mQuestionBank[mCurrentIndex].isAnswered()");
         boolean x = mQuestionBank[mCurrentIndex].isAnswered();
-        Log.d(TAG, x + "");
         if(x){
-            Log.d(TAG, "updateQuestion() called");
             disableAnswerButtons();
         } else {
-            Log.d(TAG,"enableAnswerButtonsCalled() called");
             enableAnswerButtons();
-            Log.d(TAG,"enableAnswerButtonsCalled() returned");
         }
 
         if(checkAllAnswered()){
