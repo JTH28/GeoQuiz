@@ -131,10 +131,10 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
 
-        //ArrayList<Boolean> questionsAnswered = new ArrayList<>();
-        //for(Question q : mQuestionBank) {
-        //    questionsAnswered.add(q.isAnswered());
-        //}
+        ArrayList<Boolean> questionsAnswered = new ArrayList<>();
+        for(Question q : mQuestionBank) {
+            questionsAnswered.add(q.isAnswered());
+        }
 
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
     }
@@ -167,6 +167,10 @@ public class QuizActivity extends AppCompatActivity {
             enableAnswerButtons();
             Log.d(TAG,"enableAnswerButtonsCalled() returned");
         }
+
+        if(checkAllAnswered()){
+            mQuestionTextView.setText("Your score is " + gradeQuiz()/mQuestionBank.length);
+        }
     }
 
     private void checkAnswer(boolean userPressedTrue) {
@@ -183,6 +187,10 @@ public class QuizActivity extends AppCompatActivity {
         }
         disableAnswerButtons();
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
+
+        if(checkAllAnswered()){
+
+        }
     }
 
     private void isAnswerCorrect(boolean isCorrectAnswer) {
