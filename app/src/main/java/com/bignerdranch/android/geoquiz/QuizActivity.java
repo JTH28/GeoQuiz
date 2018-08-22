@@ -1,5 +1,6 @@
 package com.bignerdranch.android.geoquiz;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ public class QuizActivity extends AppCompatActivity {
 
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
+    private static final int REQUEST_CODE_CHEAT = 0;
     private static final String EXTRA_ANSWER_IS_TRUE =
             "com.bignerdranch.android.geoquiz.answer_is_true";
 
@@ -38,6 +40,7 @@ public class QuizActivity extends AppCompatActivity {
     };
 
     private int mCurrentIndex = 0;
+    private boolean mIsCheater;
 
     public QuizActivity() {}
 
@@ -46,10 +49,12 @@ public class QuizActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz);
 
+        //returns pointer to current question
         if(savedInstanceState !=  null){
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
         }
 
+        //setup buttons and listeners
         mQuestionTextView = findViewById(R.id.question_text_view);
         mQuestionTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,6 +101,7 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mCurrentIndex = (mCurrentIndex - 1 + mQuestionBank.length) % mQuestionBank.length;
+                mIsCheater = false;
                 updateQuestion();
             }
         });
@@ -105,6 +111,7 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                mIsCheater = false;
                 updateQuestion();
             }
         });
@@ -116,7 +123,8 @@ public class QuizActivity extends AppCompatActivity {
                 //Start Cheat Activity
                 boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
                 Intent intent = CheatActivity.newIntent(QuizActivity.this, answerIsTrue);
-                startActivity(intent);
+
+                startActivityForResult(intent, REQUEST_CODE_CHEAT);
             }
         });
         updateQuestion();
@@ -165,6 +173,21 @@ public class QuizActivity extends AppCompatActivity {
         Log.d(TAG,"onDestroy() called");
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode != Activity.RESULT_OK){
+            return;
+        }
+
+        if(requestCode == REQUEST_CODE_CHEAT){
+            if(data == null){
+                return;
+            }
+            mIsCheater = CheatActivity.wasAnswerShown(data);
+        }
+    }
+
     private void updateQuestion() {
 
         int question = mQuestionBank[mCurrentIndex].getTextResId();
@@ -186,20 +209,23 @@ public class QuizActivity extends AppCompatActivity {
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
         int messageResId = 0;
 
-        if(userPressedTrue == answerIsTrue){
-            messageResId = R.string.correct_toast;
-            isAnswerCorrect(true);
-
+        if(mIsCheater){
+            messageResId = R.string.judgement_toast;
         } else {
-            messageResId = R.string.incorrect_toast;
-            isAnswerCorrect(false);
+
+            if (userPressedTrue == answerIsTrue) {
+                messageResId = R.string.correct_toast;
+                isAnswerCorrect(true);
+
+            } else {
+                messageResId = R.string.incorrect_toast;
+                isAnswerCorrect(false);
+            }
         }
         disableAnswerButtons();
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
 
-        if(checkAllAnswered()){
-
-        }
+        //if(checkAllAnswered()){}
     }
 
     private void isAnswerCorrect(boolean isCorrectAnswer) {
